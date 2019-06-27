@@ -47,7 +47,7 @@
             if(!is_null($url))
             {
                 $dir = escapeshellarg("photos/{$set['title']}");
-                $filename = parse_url($url, PHP_URL_PATH);
+                $filename = basename(parse_url($url, PHP_URL_PATH));
 
                 // Only download if file does not exist...
                 if(!file_exists("photos/{$set['title']}/$filename"))
