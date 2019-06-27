@@ -15,7 +15,6 @@
     // http://www.phpflickr.com/tools/auth/
     define('API_KEY', '');
     define('API_SECRET', '');
-    define('API_TOKEN', '');
 
     // === S T E P  2 ===
     // Fill in your Flickr user ID. You can find it here: http://idgettr.com
@@ -24,14 +23,11 @@
     // === S T E P  3 ===
     // Run the script via the command line using: "php download-all.php"
 
-    require 'phpFlickr/phpFlickr.php';
-
-    // Connect to Flickr
-    $f = new phpFlickr(API_KEY, API_SECRET, true);
-    $f->setToken(API_TOKEN);
+    require_once 'vendor/autoload.php';
+    $f = new \Samwilson\PhpFlickr\PhpFlickr(API_KEY, API_SECRET);
 
     // Get all of our photosets
-    $sets = $f->photosets_getList(UID);
+    $sets = $f->photosets()->getList(UID);
 
     foreach($sets['photoset'] as $set)
     {
@@ -39,23 +35,19 @@
         @mkdir("photos/{$set['title']}", 0777, true);
 
         // Get all the photos in this set
-        $photos = $f->photosets_getPhotos($set['id']);
+        $photos = $f->photosets()->getPhotos($set['id'], UID);
+        var_dump($photos);
 
         // And download each one...
-        foreach($photos['photoset']['photo'] as $photo)
+        foreach($photos['photo'] as $photo)
         {
-            $url = null;
-            $sizes = $f->photos_getSizes($photo['id']);
-            foreach($sizes as $size)
-            {
-                if($size['label'] == 'Original')
-                    $url = $size['source'];
-            }
+            $url = $f->photos()->getLargestSize($photo['id'])['source'];
+            var_dump($url);
 
             if(!is_null($url))
             {
                 $dir = escapeshellarg("photos/{$set['title']}");
-                $filename = parse_url($url, PHP_URL_PATH);
+                $filename = basename(parse_url($url, PHP_URL_PATH));
 
                 // Only download if file does not exist...
                 if(!file_exists("photos/{$set['title']}/$filename"))
